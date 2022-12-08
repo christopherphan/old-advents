@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import dataclass
 from sys import argv
 from typing import Final
 
-from _resources import Console, main, make_reporter, print_help
+from _resources import main, make_reporter, print_help
 
 EXPR_PARSER: Final[re.Pattern] = re.compile(
     r"((?P<val1>[a-z]+|\d+) )?((?P<op>[A-Z]+) )?(?P<val2>[a-z]+|\d+)"
@@ -124,8 +125,22 @@ def parse_input(data: str) -> EvaluationState:
     return eval_state
 
 
+def part1(eval_state: EvaluationState) -> str:
+    """Solve part 1 of the puzzle and set up the change for Part 2."""
+    ev_copy = deepcopy(eval_state)  # Keep input intact for Part 2
+    soln = ev_copy.state["a"].simplify(ev_copy)
+    eval_state.state["b"] = AssignmentExpression(None, soln, None)
+    return str(soln)
+
+
+def part2(eval_state: EvaluationState) -> str:
+    """Solve part 2 of the puzzle."""
+    return str(eval_state.state["a"].simplify(eval_state))
+
+
 RESULT_FCNS: Final[dict[str, Callable[[EvaluationState], str]]] = {
-    "Part 1": (lambda eval_state: str(eval_state.state["a"].simplify(eval_state)))
+    "Part 1": part1,
+    "Part 2": part2,
 }
 
 if __name__ == "__main__":
