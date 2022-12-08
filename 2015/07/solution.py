@@ -84,7 +84,7 @@ class AssignmentExpression:
         elif self.op == "AND":
             self.val2 = val1 & val2
         elif self.op == "OR":
-            self.val2 = val1 | val1
+            self.val2 = val1 | val2
         assert isinstance(self.val2, int)
         self.op = None
         self.val2 = self.val2 & 65535
@@ -92,35 +92,10 @@ class AssignmentExpression:
 
 
 @dataclass
-class ExpandState:
-    """Keep track of which variables have been expanded in the eval stack."""
-
-    varname: str
-    expanded: bool
-
-
-@dataclass
 class EvaluationState:
     """Represent an intermediate evaluation of the variables."""
 
     state: dict[str, AssignmentExpression]
-
-    def evaluate(self: EvaluationState, var: str) -> int:
-        """Evaluate the variable, simplifying the state as we go along."""
-        if var not in self.state:
-            raise NameError(f"{var} is not evaluation state.")
-        eval_stack: list[ExpandState] = [
-            ExpandState(var, bool(self.state[var].parents))
-        ]
-        while unexpanded := [k for k in eval_stack if not k.expanded]:
-            for k in unexpanded:
-                for p in self.state[k.varname].parents:
-                    eval_stack.append(ExpandState(p, bool(self.state[p].parents)))
-
-        while eval_stack:
-            self.state[eval_stack.pop().varname].simplify(self)
-
-        return self.state[var].simplify(self)
 
 
 @dataclass
@@ -150,7 +125,7 @@ def parse_input(data: str) -> EvaluationState:
 
 
 RESULT_FCNS: Final[dict[str, Callable[[EvaluationState], str]]] = {
-    "Part 1": (lambda eval_state: str(eval_state.evaluate("a")))
+    "Part 1": (lambda eval_state: str(eval_state.state["a"].simplify(eval_state)))
 }
 
 if __name__ == "__main__":
