@@ -5,8 +5,15 @@ from sys import argv
 from _resources import main, make_reporter, print_help
 
 
-def extra_chars(text: str) -> int:
+def extra_chars(text: str, literal: bool = True) -> int:
     """Return the number of extra characters in the literal compared to in memory."""
+    if literal:
+        return _extra_chars_lit(text)
+    else:
+        return _extra_chars_mem(text)
+
+
+def _extra_chars_lit(text: str) -> int:
     text = text[1:-1]  # Get rid of delimiting quotation marks
     chars_left = len(text)
     extra = 2  # The quotation marks at the start/end count as 2
@@ -30,12 +37,19 @@ def extra_chars(text: str) -> int:
     return extra
 
 
+def _extra_chars_mem(text: str) -> int:
+    return 2 + sum(text.count(k) for k in ["\\", '"'])
+
+
 if __name__ == "__main__":
     main(
         argv,
         print_help,
         make_reporter(
             lambda x: x.splitlines(),
-            {"Part 1": (lambda x: str(sum(extra_chars(k) for k in x)))},
+            {
+                "Part 1": (lambda x: str(sum(extra_chars(k) for k in x))),
+                "Part 2": (lambda x: str(sum(extra_chars(k, False) for k in x))),
+            },
         ),
     )
